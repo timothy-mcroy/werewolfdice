@@ -8,24 +8,55 @@ function addToDiceBag() {
     if (diePool === "" || isNaN(diePool)) return;
     var agains = $("#Agains").val();
     var isRote = $("#RoteAction").is(":checked");
+    var rollDescription = $("#RollDescription").val();
+    if (rollDescription === "") {
+        rollDescription = "Saved Roll";
+    }
+    var premadeRoll = {
+        "diePool" : diePool,
+        "agains" : agains,
+        "isRote": isRote,
+        "description": rollDescription
+    };
+    insertIntoDiceBag(premadeRoll);
+    storeRollLocally(premadeRoll);
+}
 
-    var newButton = jQuery('<div/>', {
+function insertIntoDiceBag(premadeRoll) {
+    var diePool = premadeRoll.diePool;
+    if (diePool === "" || isNaN(diePool)) return;
+    var agains = premadeRoll.agains;
+    var isRote = premadeRoll.isRote;
+
+    var newButton = jQuery("<div/>", {
         "class": "button stored-roll",
         "data-dicepool": diePool,
         "data-agains": agains,
         "data-is-Rote": isRote,
-        "onclick": "storedRoll(this)"
+        "onclick": "storedRoll(this)",
+        "data-roll-description": premadeRoll.rollDescription
     });
-    var badge = jQuery('<span/>', {
+
+    var badge = jQuery("<span/>", {
         "class": "agains-badge",
         text: agains
     });
+    var diePoolBadge = jQuery("<span/>", {
+        "class": "diePool-badge",
+        text: diePool
+    });
+    var roteBadgeClass = isRote ? "mif-checked" : "mif-cross";
+    var roteBadge = var diePoolBadge = jQuery("<span/>", {
+        "class": roteBadgeClass,
+        text: " Rote"
+    });
+
 
     badge.appendTo(newButton);
-    jQuery("<span/>", { text: diePool, "class": "diepool-label" }).appendTo(newButton);
+    jQuery("<span/>", { text: premadeRoll.rollDescription, "class": "diepool-label" }).appendTo(newButton);
     newButton.appendTo("#dicebag");
-
 }
+
 
 function storedRoll(rollElem) {
     var d = rollElem.dataset.dicepool;
@@ -51,20 +82,124 @@ function ExecuteRoll() {
 }
 
 function RollAndRecord(rollSettings) {
+    var penalty = +$("#DiePenalty").val();
+    if (isNaN(penalty)) {
+        penalty = 0;
+    }
+    var bonus = +$("#DieBonus").val();
+    if (isNaN(bonus)) {
+        bonus = 0;
+    }
+    rollSettings.diePool = +rollSettings.diePool + bonus - penalty;
+    if (rollSettings.diePool < 1) return null;
     var results = WerewolfRoll(rollSettings.isRote, rollSettings.diePool, rollSettings.agains);
     var totalDiceRolled = results.DiceBag.length - rollSettings.diePool;
+    RecordResults(rollSettings, results, totalDiceRolled);
+    storeResultsLocally(rollSettings, results, totalDiceRolled);
+    return results;
+}
+function RecordResults(rollSettings, results, totalDiceRolled) {
     var hits = successes(results.DiceBag);
     $("#output").prepend(
         "<tr>" +
         "<td class='Hits'>" + hits + "</td>" +
-        "<td class='results'>" + results.DiceBag.join(', ') + "</td>" +
+        "<td class='results'>" + results.DiceBag.join(", ") + "</td>" +
         "<td class='diePool'>" + rollSettings.diePool + "</td>" +
         "<td class='agains'>" + rollSettings.agains + "</td>" +
         "<td class='totalDiceRolled hide-small'>" + totalDiceRolled + "</td>" +
         "<td class='isRote'>" + rollSettings.isRote + "</td>" +
         "<td class='numberOfRoteDice hide-small'>" + results.RoteDice + "</td>" +
         "</tr>");
-    return results;
+}
+
+function storeResultsLocally(rollSettings, results, totalRolledDice) {
+    var resultStore = {
+        RollSettings : rollSettings,
+        Results: results,
+        TotalDiceRolled: totalRolledDice
+    };
+    var resultPool = localStorage.getObject("DiceResults");
+    resultPool.unshift(resultStore);
+    localStorage.setObject("DiceResults", resultPool);
+}
+function storeRollLocally(premadeRoll) {
+    var roll = {
+        "diePool": premadeRoll.diePool,
+        "agains": premadeRoll.agains,
+        "isRote": premadeRoll.isRote,
+        "rollDescription": premadeRoll.description
+    }
+    var diceBag = localStorage.getObject("DiceBag");
+    diceBag.unshift(roll);
+    localStorage.setObject("DiceBag", diceBag);
+}
+
+function showDialog(id) {
+    var dialog = $(id).data('dialog');
+    dialog.open();
+}
+function closeDialog(id) {
+    var dialog = $(id).data('dialog');
+    dialog.close();
+}
+
+function ClearDiceBag() {
+    $("#dicebag").html("");
+    localStorage.setObject("DiceBag", []);
+}
+
+function ClearDiceResults() {
+    //Clear table
+    //ajax would be ideal, but we want this to be fully cacheable.  Solutions?
+    $("#output").html("<thead>" +
+        "<tr>" +
+        "<th class=\"results-hits\">Hits</th>" +
+        "<th class=\"results-dice\">Dice</th>" +
+        "<th class=\"diePool\">Die Pool</th>" +
+        "<th class=\"\">Agains</th>" +
+        "<th class=\"hide-small\">Extra Dice</th>" +
+        "<th class=\"Rote\">Rote action</th>" +
+        "<th class=\"hide-small\">Dice from rote action</th>" +
+        "</tr>" +
+        "</thead>" +
+        "<tbody class=\"diceoutput\">" +
+        "</tbody>");
+    //Clear localstorage
+    localStorage.removeItem("DiceResults");
+    
+}
+
+
+function loadLocals() {
+    //http://stackoverflow.com/a/3146971/5022251
+    Storage.prototype.setObject = function (key, value) {
+        this.setItem(key, JSON.stringify(value));
+    }
+
+    Storage.prototype.getObject = function (key) {
+        var value = this.getItem(key);
+        return value && JSON.parse(value);
+    }
+
+    var diceBag = localStorage.getObject("DiceBag");
+    if (diceBag !== null) {
+        for (var i = diceBag.length - 1; i >= 0; i--) {
+            insertIntoDiceBag(diceBag[i]);
+        }
+    } else {
+        localStorage.setObject("DiceBag", []);
+    }
+    var rollResults = localStorage.getObject("DiceResults");
+    if (rollResults !== null) {
+        for (var i = rollResults.length - 1; i >= 0; i--) {
+            var results = rollResults[i].Results;
+            var rollSettings = rollResults[i].RollSettings;
+            var totalDiceRolled = rollResults[i].TotalDiceRolled;
+            RecordResults(rollSettings, results, totalDiceRolled);
+        }
+    } else {
+        localStorage.setObject("DiceResults", []);
+    }
 }
 
 function RollDice(diePool) {
@@ -115,6 +250,8 @@ function WerewolfRoll(isRote, diePool, agains) {
     return { DiceBag: roll, RoteDice: diceFromRote };
 }
 
+
+
 $(document).ready(function () {
 
     //check the enabled state on load
@@ -130,7 +267,7 @@ $(document).ready(function () {
             if (this.checked) {
                 el.attr("disabled", "disabled");
 
-                $('#Agains')
+                $("#Agains")
                     .append($("<option></option>")
                         .attr("value", "Disabled")
                         .text("No trick!"))
@@ -144,5 +281,6 @@ $(document).ready(function () {
         }
     });
 
+    loadLocals();
 });
 

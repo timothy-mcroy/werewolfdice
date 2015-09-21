@@ -24,8 +24,19 @@ textarea {
     max-width: 280px;
 }
 
-@media (max-width: 400px) {
+@media screen and  (max-width: 640px) {
     .hide-small {
         display: none;
     }
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+    }
+    
+    .input-control.text {
+        width: 90%;
+    }
+
+}
 }

@@ -1,88 +1,146 @@
 ﻿@{
     ViewBag.Title = "View";
 }
-<div id="dicebag">
+<div class="grid">
+    <div class="row cells2">
+        <div class="roll-maker grid cell">
+            <div class="row cells3">
+                <div class="cell">
+                    <div style="margin: 0 auto; width: 25%;">
+                        <div>Disable agains</div>
+                        <label class="switch">
+                            <input type="checkbox" id="disable-agains"/>
+                            <span class="check"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="cell">
+                    <div class="input-control select agains">
+                        <label for="Agains">Agains</label>
+                        <select id="Agains" style="margin: 0 auto;">
+                            <option value="10" selected="selected">10</option>
+                            <option value="9">9</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                </div>
 
+                <div class="cell">
+                    <div style="margin: 0 auto; width: 25%;">
+                        <div>Rote</div>
+                        <label class="switch">
+                            <input type="checkbox" id="RoteAction"/>
+                            <span class="check"></span>
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="cell colspan4 input-control modern text iconic" data-role="input">
+                    <input type="text" id="DicePool" data-validated-hint="Value must be numeric" required="required"
+                           data-validate-func="number" style="margin: 0 auto;"/>
+                    <span class="label">Dice Pool</span>
+                    <span class="informer">Please enter a die pool</span>
+                    <span class="placeholder" style="cursor: default;">Die pool</span>
+                    <span class="icon mif-dice"></span>
+                </div>
+            </div>
+            <div class="row">
+                <button class="button cell" onclick="ExecuteRoll()">Roll Dice!</button>
+                <div class="cell button bg-green big-button" onclick="addToDiceBag()" style="float: right;">
+                    Save roll
+                </div>
+            </div>
+            <div class="row">
+                <div class="cell colspan4 input-control modern text iconic" data-role="input" >
+                    <input type="text" id="RollDescription" style="margin: 0 auto;" />
+                    <span class="label">Roll Description</span>
+                    <span class="informer">40 characters max</span>
+                    <span class="placeholder" style="cursor: default;">Saved Roll Description</span>
+                    <span class="icon mif-tag"></span>
+                </div>
+            </div>
+        </div>
+        <div class="grid utilities cell">
+            <div class="row cells2">
+                <button class="cell button bg-dark fg-grayLight" onclick="showDialog('#DieBagConfirm')">Clear DiceBag</button>
+                <button class="cell button bg-dark fg-grayLight" onclick="ClearDiceResults()">Clear Results</button>
+            </div>
+            <div class="row">
+
+                <div class="input-control modern text iconic centered" data-role="input">
+                    <input type="text" id="DiePenalty"/>
+                    <span class="label">Die penalty</span>
+                    <span class="informer">Penalty for this roll</span>
+                    <span class="placeholder">Penalty</span>
+                    <span class="icon mif-minus"></span>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="centered">
+                    <div class="input-control modern text iconic" data-role="input">
+                        <input type="text" id="DieBonus"/>
+                        <span class="label">Die bonus</span>
+                        <span class="informer">Bonus for this roll</span>
+                        <span class="placeholder">Bonus</span>
+                        <span class="icon mif-plus"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 
-<div class="roll-maker grid">
-    <div class="row cells3">
-        <div class="cell">
-            <div style="margin: 0 auto; width: 25%;">
-                <div>Disable agains</div>
-                <label class="switch" >
-                    <input type="checkbox" id="disable-agains" />
-                    <span class="check"></span>
-                </label>
+<div class="row">
+    <div class="cell margin20">
+
+        <div class="scroll200">
+            <div id="dicebag">
+
             </div>
         </div>
-        <div class="cell ">
-            <div class="input-control select agains">
-                <label for="Agains">Agains</label>
-                <select id="Agains" style="margin: 0 auto;">
-                    <option value="10" selected="selected">10</option>
-                    <option value="9">9</option>
-                    <option value="8">8</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="cell">
-            <div style="margin: 0 auto; width: 25%;">
-                <div>Rote</div>
-                <label class="switch">
-                    <input type="checkbox" id="RoteAction"/>
-                    <span class="check"></span>
-                </label>
-            </div>
-
-        </div>
-
     </div>
-    <div class="row">
-        <div class="cell colspan4 input-control modern text iconic" data-role="input" >
-            <input type="text" id="DicePool" data-validated-hint="Value must be numeric" required="required"
-                   data-validate-func="number" style="margin: 0 auto;" />
-            <span class="input-state-error mif-warning" style="right: 8px;"></span>
-            <span class="input-state-success mif-checkmark" style="right: 8px;"></span>
-            <span class="input-state-error mif-warning"></span>
-            <span class="input-state-success mif-checkmark"></span>
-            <span class="label">Dice Pool</span>
-            <span class="informer">Please enter a die pool</span>
-            <span class="placeholder">Die pool</span>
-            <span class="icon mif-dice"></span>
-        </div>
-    </div>
-    <div class="row">
-        <button class="button cell" onclick="ExecuteRoll()">Roll Dice!</button>
-
-
-        <div class="cell button bg-green big-button" onclick="addToDiceBag()" style="float: right;">
-            Save roll
-        </div>
-    </div>
-
-    
 </div>
 
-<table class="table hovered bordered" id="output">
-    <thead>
-    <tr>
-        <th class="results-hits">Hits</th>
-        <th class="results-dice">Dice</th>
-        <th class="diePool">Die Pool</th>
-        <th class="">Agains</th>
-        <th class="hide-small">Extra Dice</th>
-        <th class="Rote">Rote action</th>
-        <th class="hide-small">Dice from rote action</th>
-    </tr>
+<div class="row">
+    <div class="cell margin20">
+        <div class="scroll200">
+            <table class="table hovered bordered " id="output">
+                <thead>
+                    <tr>
+                        <th class="results-hits">Hits</th>
+                        <th class="results-dice">Dice</th>
+                        <th class="diePool">Die Pool</th>
+                        <th class="">Agains</th>
+                        <th class="hide-small">Extra Dice</th>
+                        <th class="Rote">Rote action</th>
+                        <th class="hide-small">Dice from rote action</th>
+                    </tr>
 
-    </thead>
-    <tbody class="diceoutput">
+                </thead>
+                <tbody class="diceoutput"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-    </tbody>
-</table>
+
+
+<div class="dialog padding20 warning" data-close-button="true" data-type="warning" id="DieBagConfirm" data-role="dialog">
+    <h1>Are you sure?</h1>
+    <p>
+        This will permanently delete your stored rolls.
+    </p>
+    <p>
+        There is no going back from this.
+    </p>
+    <button class="padding5 button alert" onclick="ClearDiceBag(); closeDialog('#DieBagConfirm');">Delete my stored rolls.</button>
+    <button class="padding5 button success" onclick="closeDialog('#DieBagConfirm')" style="float: right">Nevermind.</button>
+</div>
 
 @Scripts.Render("~/bundles/dice")
 @Styles.Render("~/Content/dice")

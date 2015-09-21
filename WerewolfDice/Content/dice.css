@@ -1,18 +1,21 @@
 ﻿.roll-maker {
+    border: 2px black solid;
     display: inline-block;
     float: left;
-    border: 2px black solid; 
-    width: 50%; 
+    padding: 3em;
+    width: 40%;
+}
+
+.roll-maker * { box-sizing: border-box; }
+
+.utilities {
+    border: 2px black solid;
     padding: 3em;
 }
 
-.roll-maker * {
-    box-sizing: border-box;
-}
+.centered { margin: 0 auto; }
 
-.input-control.select.agains {
-    width: 100%;
-}
+.input-control.select.agains { width: 100%; }
 
 .diepool-label {
     font-size: 1.7rem;
@@ -40,6 +43,12 @@
 
 #output > tbody > thead > tr > th, #output > thead > tr > td { max-width: 20px; }
 
+#output > tbody > tr:first-child { background-color: #09BB70; }
+
+#output > tbody > tr:nth-child(2) { background-color: #90E0BE; }
+
+#output > tbody > tr:nth-child(3) { background-color: #BCECD8; }
+
 .agains-badge {
     background-color: red;
     bottom: 0;
@@ -47,4 +56,10 @@
     position: absolute;
     right: .625rem;
     z-index: 999;
+}
+
+
+.scroll200 {
+    height: 200px;
+    overflow-y: scroll;
 }
