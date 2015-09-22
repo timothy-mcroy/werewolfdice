@@ -12,11 +12,12 @@ function addToDiceBag() {
     if (rollDescription === "") {
         rollDescription = "Saved Roll";
     }
+
     var premadeRoll = {
         "diePool" : diePool,
         "agains" : agains,
         "isRote": isRote,
-        "description": rollDescription
+        "rollDescription": rollDescription
     };
     insertIntoDiceBag(premadeRoll);
     storeRollLocally(premadeRoll);
@@ -42,17 +43,18 @@ function insertIntoDiceBag(premadeRoll) {
         text: agains
     });
     var diePoolBadge = jQuery("<span/>", {
-        "class": "diePool-badge",
+        "class": "dice-badge",
         text: diePool
     });
-    var roteBadgeClass = isRote ? "mif-checked" : "mif-cross";
-    var roteBadge = var diePoolBadge = jQuery("<span/>", {
-        "class": roteBadgeClass,
+    var roteBadgeClass = isRote ? "mif-checkmark" : "mif-cross";
+    var roteBadge = jQuery("<span/>", {
+        "class": roteBadgeClass + " rote-badge",
         text: " Rote"
     });
 
-
+    roteBadge.appendTo(newButton);
     badge.appendTo(newButton);
+    diePoolBadge.appendTo(newButton);
     jQuery("<span/>", { text: premadeRoll.rollDescription, "class": "diepool-label" }).appendTo(newButton);
     newButton.appendTo("#dicebag");
 }
@@ -62,10 +64,12 @@ function storedRoll(rollElem) {
     var d = rollElem.dataset.dicepool;
     var a = rollElem.dataset.agains;
     var i = rollElem.dataset.isRote === "true";
+    var desc = rollElem.dataset.rollDescription;
     var rollSettings = {
         agains: a,
         diePool: d,
-        isRote: i
+        isRote: i,
+        rollDescription: desc
     };
     RollAndRecord(rollSettings);
 }
@@ -75,8 +79,14 @@ function ExecuteRoll() {
     var rollsettings = {
         agains: $("#Agains").val(),
         diePool: $("#DicePool").val(),
-        isRote: $("#RoteAction").is(":checked")
+        isRote: $("#RoteAction").is(":checked"),
+        rollDescription: $("#RollDescription").val()
     };
+
+    if (rollsettings.rollDescription === "") {
+        rollsettings.rollDescription = "Quick roll";
+    }
+    
     if (rollsettings.diePool === "" || isNaN(rollsettings.diePool)) return;
     RollAndRecord(rollsettings);
 }
@@ -98,17 +108,42 @@ function RollAndRecord(rollSettings) {
     storeResultsLocally(rollSettings, results, totalDiceRolled);
     return results;
 }
+
+function compressedCount(list) {
+    http://stackoverflow.com/a/5668029/5022251
+    var counts = {};
+    for (var i = 0; i < list.length; i++) {
+        var num = list[i];
+        counts[num] = counts[num] ? counts[num] + 1 : 1;
+    }
+    return counts;
+}
+
+function formatCompressed(compressed) {
+    var results = "";
+    for (var key in compressed) {
+        results =  results + key + ": " + compressed[key] + ", ";
+    }
+    return results.substring(0, results.length - 2);
+}
+
 function RecordResults(rollSettings, results, totalDiceRolled) {
     var hits = successes(results.DiceBag);
+    var dieBag = results.DiceBag.join(", ");
+
+    if (results.DiceBag.length > 25) {
+        dieBag = formatCompressed(compressedCount(results.DiceBag));
+    }
     $("#output").prepend(
         "<tr>" +
         "<td class='Hits'>" + hits + "</td>" +
-        "<td class='results'>" + results.DiceBag.join(", ") + "</td>" +
+        "<td class='results'>" + dieBag + "</td>" +
         "<td class='diePool'>" + rollSettings.diePool + "</td>" +
         "<td class='agains'>" + rollSettings.agains + "</td>" +
         "<td class='totalDiceRolled hide-small'>" + totalDiceRolled + "</td>" +
         "<td class='isRote'>" + rollSettings.isRote + "</td>" +
         "<td class='numberOfRoteDice hide-small'>" + results.RoteDice + "</td>" +
+        "<td class='result-description'>" + rollSettings.rollDescription + "</td>" +
         "</tr>");
 }
 
@@ -127,7 +162,7 @@ function storeRollLocally(premadeRoll) {
         "diePool": premadeRoll.diePool,
         "agains": premadeRoll.agains,
         "isRote": premadeRoll.isRote,
-        "rollDescription": premadeRoll.description
+        "rollDescription": premadeRoll.rollDescription
     }
     var diceBag = localStorage.getObject("DiceBag");
     diceBag.unshift(roll);

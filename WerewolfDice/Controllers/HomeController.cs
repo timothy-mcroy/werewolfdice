@@ -15,14 +15,14 @@ namespace WerewolfDice.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "This is the world of darkness die roller.";
 
             return View();
         }
 
         public ActionResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
+            ViewBag.Message = "Send me hatemail";
 
             return View();
         }

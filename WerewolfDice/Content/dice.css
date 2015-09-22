@@ -26,10 +26,10 @@
 .stored-roll {
     background-color: green;
     min-height: 80px;
-    min-width: 80px;
+    min-width: 200px;
 }
 
-.stored-roll[data-is-rote="true"] { background-color: orange; }
+/*.stored-roll[data-is-rote="true"] { background-color: orange; }*/
 
 #dicebag {
     display: inline-block;
@@ -50,14 +50,37 @@
 #output > tbody > tr:nth-child(3) { background-color: #BCECD8; }
 
 .agains-badge {
-    background-color: red;
+    background-color: teal;
+    bottom: 0;
+    padding: .25rem .25rem;
+    position: absolute;
+    right: 0;
+    z-index: 999;
+    font-size: .8rem;
+    color: white;
+}
+
+
+
+
+.dice-badge {
+    background-color: white;
     bottom: 0;
     padding: .25rem .625rem;
     position: absolute;
-    right: .625rem;
+    right: 40%;
     z-index: 999;
 }
 
+.rote-badge {
+    background-color: orange;
+    bottom: 0;
+    padding: .25rem .625rem;
+    position: absolute;
+    left: 0;
+    z-index: 999;
+    font-size: .6rem;
+}
 
 .scroll200 {
     height: 200px;

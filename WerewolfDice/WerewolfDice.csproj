@@ -195,6 +195,7 @@
     <Content Include="fonts\metro.woff" />
     <Content Include="fonts\metro.ttf" />
     <Content Include="fonts\metro.eot" />
+    <None Include="Properties\PublishProfiles\werewolf.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\dice.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
