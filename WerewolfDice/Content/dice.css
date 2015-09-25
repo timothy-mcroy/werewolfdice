@@ -84,5 +84,5 @@
 
 .scroll200 {
     height: 200px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
