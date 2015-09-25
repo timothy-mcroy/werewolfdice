@@ -99,6 +99,7 @@
     <div class="cell margin20">
 
         <div class="scroll200">
+            <input id="search" name="search" placeholder="Search for rolls" type="text" data-toggle="hideseek" data-list="#dicebag" data-ignore=".agains-badge" data-nodata="No matching rolls" autocomplete="off"/>
             <div id="dicebag">
 
             </div>
@@ -142,6 +143,7 @@
     <button class="padding5 button alert" onclick="ClearDiceBag(); closeDialog('#DieBagConfirm');">Delete my stored rolls.</button>
     <button class="padding5 button success" onclick="closeDialog('#DieBagConfirm')" style="float: right">Nevermind.</button>
 </div>
+
 
 @Scripts.Render("~/bundles/dice")
 @Styles.Render("~/Content/dice")

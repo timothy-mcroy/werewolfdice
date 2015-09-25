@@ -24,7 +24,8 @@ namespace WerewolfDice
                       "~/Scripts/respond.js"
                       ));
             bundles.Add(new ScriptBundle("~/bundles/dice").Include(
-                      "~/Scripts/dice.js"
+                      "~/Scripts/dice.js",
+                      "~/Scripts/hideseek.js"
                       ));
 
             bundles.Add(new StyleBundle("~/Content/dice").Include(
