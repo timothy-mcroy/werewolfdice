@@ -1,4 +1,14 @@
-﻿
+﻿//http://stackoverflow.com/a/3146971/5022251
+Storage.prototype.setObject = function (key, value) {
+    this.setItem(key, JSON.stringify(value));
+}
+
+Storage.prototype.getObject = function (key) {
+    var value = this.getItem(key);
+    return value && JSON.parse(value);
+}
+
+
 function RollDie() {
     return Math.floor((Math.random() * 10 + 1));
 }
@@ -203,19 +213,97 @@ function ClearDiceResults() {
     localStorage.removeItem("DiceResults");
     
 }
+var RollResults = function(rollSettings, results, totalRolledDice) {
 
+    this.RollSettings = rollSettings;
+    this.Results = results;
+    this.TotalDiceRolled = totalRolledDice;
+}
+
+var RollSettings = function(diePool, agains, isRote, rollDescription) {
+    if (typeof isRote === "undefined") {
+        isRote = false;
+    }
+    if (typeof agains === "undefined") {
+        agains = 10;
+    }
+    if (typeof rollDescription === "undefined") {
+        rollDescription = diePool + " with " + agains + " agains" + (isRote ? "and Rote." : ".");
+    }
+    this.agains = agains;
+    this.diePool = diePool;
+    this.isRote = isRote;
+    this.rollDescription = rollDescription;
+    this.results = [];
+}
+
+RollSettings.prototype.roll = function() {
+    var result = WerewolfRoll(this.isRote, this.diePool, this.agains);
+    this.results.push(result);
+    return result;
+}
+
+var SavedRollArea = function(characterName, obj) {
+    this.rollKey = 0;
+    this.storedRoll = {};
+    this.characterName = characterName;
+    for (var prop in obj) this[prop] = obj[prop];
+}
+
+SavedRollArea.prototype.addToDiceBag = function (dieSettings) {
+    this.storedRoll[this.rollKey] = dieSettings;
+    return this.rollKey++;
+}
+
+SavedRollArea.prototype.roll  = function(currentRollKey) {
+    if (!this.storedRoll.hasOwnProperty(currentRollKey)) {
+        alert("Invalid rollkey found");
+        return -1;
+    }
+    var currentRoll = this.storedRoll[currentRollKey];
+    return currentRoll.roll();;
+}
+
+function updateCharacter(character) {
+    var characters = localStorage.getObject("Characters");
+    var overwrite = characters.hasOwnProperty(character.characterName);
+    characters[character.characterName] = character;
+    localStorage.setObject("Characters", characters);
+    if (overwrite) {
+        console.log("Overwrote " + character.characterName + " with new data");
+
+    }
+}
+
+function loadCharacter (characterName) {
+    var characterList = localStorage.getObject("Characters");
+    if (characterList === null) {
+        localStorage.setObject("Characters", {});
+        characterList = localStorage.getObject("Characters");
+    }
+    
+    if (!(characterList.hasOwnProperty(characterName))) {
+        var character = new SavedRollArea(characterName);
+        characterList[characterName] = character;
+        localStorage.setObject("Characters", characterList);
+        return character;
+    } else {
+        var loadedChar = new SavedRollArea(characterName, characterList[characterName]);
+        DisplayCharacterStuff(loadedChar);
+        return loadedChar;
+    }
+};
+
+function DisplayCharacterStuff(character) {
+    for (var rollSetting in character.storedRoll) {
+        if (character.storedRoll.hasOwnProperty(rollSetting)) {
+            insertIntoDiceBag(character.storedRoll[rollSetting]);
+        }
+    }
+
+}
 
 function loadLocals() {
-    //http://stackoverflow.com/a/3146971/5022251
-    Storage.prototype.setObject = function (key, value) {
-        this.setItem(key, JSON.stringify(value));
-    }
-
-    Storage.prototype.getObject = function (key) {
-        var value = this.getItem(key);
-        return value && JSON.parse(value);
-    }
-
     var diceBag = localStorage.getObject("DiceBag");
     if (diceBag !== null) {
         for (var i = diceBag.length - 1; i >= 0; i--) {
@@ -257,10 +345,6 @@ function successes(roll) {
 function WerewolfMainRoll(diePool, agains) {
     var roll = RollDice(diePool);
     var diceToReroll = count(roll, function (x) { return x >= agains; });
-
-    console.log("--extra dice roll is --" + roll);
-    var p = successes(roll);
-    console.log("Extra hits are = " + p);
     if (diceToReroll > 0) {
         return roll.concat(WerewolfMainRoll(diceToReroll, agains));
     }
@@ -269,10 +353,7 @@ function WerewolfMainRoll(diePool, agains) {
 
 function WerewolfRoll(isRote, diePool, agains) {
     var roll = RollDice(diePool);
-    console.log("--original roll is --" + roll);
-    console.log(roll);
     var diceToReroll = 0;
-
     var diceFromRote = 0;
     if (isRote) {
         diceFromRote = roll.length - successes(roll);
@@ -286,10 +367,10 @@ function WerewolfRoll(isRote, diePool, agains) {
 }
 
 
-
 $(document).ready(function () {
 
     //check the enabled state on load
+    
     if ($("#chk").is(":checked")) {
         $("#txt").attr("disabled", "disabled");
     }
@@ -315,7 +396,36 @@ $(document).ready(function () {
             }
         }
     });
-
-    loadLocals();
+    if (typeof characterName === "undefined") {
+        loadLocals();
+    } 
+    else {
+        loadCharacter(characterName);
+    }
+    
 });
 
+
+
+var settings = new RollSettings(5);
+var Bill = new SavedRollArea("Bill");
+var rollId = Bill.addToDiceBag(settings);
+
+var diceBag = localStorage.getObject("DiceBag");
+var Default = new SavedRollArea("Default");
+if (diceBag !== null) {
+    for (var i = 0; i < diceBag.length; i++) {
+        var currentDieRoll = diceBag[i];
+        var settings = new RollSettings(currentDieRoll.diePool, currentDieRoll.agains, currentDieRoll.isRote, currentDieRoll.rollDescription);
+        Default.addToDiceBag(settings);
+    }
+}
+
+var ch = localStorage.getObject("Characters");
+ch["Default"] = Default;
+localStorage.setObject("Characters", ch);
+
+if (typeof characterName === "undefined") {
+    alert("Ahhhhh, on default page!");
+
+}

@@ -13,5 +13,10 @@ namespace WerewolfDice.Controllers
         {
             return View();
         }
+
+        public ActionResult Character(string id)
+        {
+            return View(model:id);
+        }
     }
 }
