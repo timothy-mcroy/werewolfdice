@@ -1,9 +1,13 @@
-﻿.roll-maker {
+﻿.body-content {
+    padding-top: 1%;
+}
+
+.roll-maker {
     border: 2px black solid;
     display: inline-block;
     float: left;
     padding: 3em;
-    width: 40%;
+    width: 100%;
 }
 
 .roll-maker * { box-sizing: border-box; }
@@ -70,6 +74,7 @@
     position: absolute;
     right: 40%;
     z-index: 999;
+    border-radius: 5px 5px 0 0;
 }
 
 .rote-badge {
@@ -80,9 +85,22 @@
     left: 0;
     z-index: 999;
     font-size: .6rem;
+    border-radius: 0 5px 0 0;
 }
 
-.scroll200 {
-    height: 200px;
+.scroll300 {
+    height: 300px;
     overflow-y: auto;
+}
+
+.scroll500 {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.panel > .heading{
+    background-color: #333333;
+}
+.panel > .content {
+    background-color: inherit;
 }

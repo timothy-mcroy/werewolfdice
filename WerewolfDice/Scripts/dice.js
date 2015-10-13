@@ -29,8 +29,8 @@ function addToDiceBag() {
         "isRote": isRote,
         "rollDescription": rollDescription
     };
-    insertIntoDiceBag(premadeRoll);
     storeRollLocally(premadeRoll);
+    insertIntoDiceBag(premadeRoll);
 }
 
 function insertIntoDiceBag(premadeRoll) {
@@ -67,6 +67,9 @@ function insertIntoDiceBag(premadeRoll) {
     diePoolBadge.appendTo(newButton);
     jQuery("<span/>", { text: premadeRoll.rollDescription, "class": "diepool-label" }).appendTo(newButton);
     newButton.appendTo("#dicebag");
+    if (premadeRoll.hasOwnProperty("results")) {
+        alert("Loading a roll with results!");
+    }
 }
 
 
@@ -81,6 +84,7 @@ function storedRoll(rollElem) {
         isRote: i,
         rollDescription: desc
     };
+    
     RollAndRecord(rollSettings);
 }
 
@@ -99,6 +103,7 @@ function ExecuteRoll() {
     
     if (rollsettings.diePool === "" || isNaN(rollsettings.diePool)) return;
     RollAndRecord(rollsettings);
+    
 }
 
 function RollAndRecord(rollSettings) {
@@ -112,10 +117,16 @@ function RollAndRecord(rollSettings) {
     }
     rollSettings.diePool = +rollSettings.diePool + bonus - penalty;
     if (rollSettings.diePool < 1) return null;
+    
     var results = WerewolfRoll(rollSettings.isRote, rollSettings.diePool, rollSettings.agains);
     var totalDiceRolled = results.DiceBag.length - rollSettings.diePool;
     RecordResults(rollSettings, results, totalDiceRolled);
     storeResultsLocally(rollSettings, results, totalDiceRolled);
+    $.Notify({
+        caption: rollSettings.rollDescription,
+        content: successes(results.DiceBag),
+        type: "success"
+});
     return results;
 }
 
@@ -155,6 +166,7 @@ function RecordResults(rollSettings, results, totalDiceRolled) {
         "<td class='numberOfRoteDice hide-small'>" + results.RoteDice + "</td>" +
         "<td class='result-description'>" + rollSettings.rollDescription + "</td>" +
         "</tr>");
+    
 }
 
 function storeResultsLocally(rollSettings, results, totalRolledDice) {
@@ -174,9 +186,10 @@ function storeRollLocally(premadeRoll) {
         "isRote": premadeRoll.isRote,
         "rollDescription": premadeRoll.rollDescription
     }
-    var diceBag = localStorage.getObject("DiceBag");
-    diceBag.unshift(roll);
-    localStorage.setObject("DiceBag", diceBag);
+    CharacterStore.currentCharacter.addToDiceBag(roll);
+    //var diceBag = localStorage.getObject("DiceBag");
+    //diceBag.unshift(roll);
+    //localStorage.setObject("DiceBag", diceBag);
 }
 
 function showDialog(id) {
@@ -188,10 +201,7 @@ function closeDialog(id) {
     dialog.close();
 }
 
-function ClearDiceBag() {
-    $("#dicebag").html("");
-    localStorage.setObject("DiceBag", []);
-}
+
 
 function ClearDiceResults() {
     //Clear table
@@ -252,7 +262,9 @@ var SavedRollArea = function(characterName, obj) {
 
 SavedRollArea.prototype.addToDiceBag = function (dieSettings) {
     this.storedRoll[this.rollKey] = dieSettings;
-    return this.rollKey++;
+    this.rollKey++;
+    CharacterStore.updateCharacter();
+    return this.rollKey;
 }
 
 SavedRollArea.prototype.roll  = function(currentRollKey) {
@@ -264,18 +276,37 @@ SavedRollArea.prototype.roll  = function(currentRollKey) {
     return currentRoll.roll();;
 }
 
-function updateCharacter(character) {
-    var characters = localStorage.getObject("Characters");
+var CharacterStore = CharacterStore || {};
+
+CharacterStore.updateCharacter = function (character) {
+    if (typeof character === "undefined") {
+        character = CharacterStore.currentCharacter;
+    }
+    var characters = CharacterStore.getCharacters();
     var overwrite = characters.hasOwnProperty(character.characterName);
     characters[character.characterName] = character;
     localStorage.setObject("Characters", characters);
     if (overwrite) {
+        if (typeof character.characterName === "undefined") {
+            alert("Name is not defined");
+        }
         console.log("Overwrote " + character.characterName + " with new data");
-
+        
     }
 }
+CharacterStore.getCharacters = function() {
+    var untypedCharacters = localStorage.getObject("Characters");
+    var typedCharacters = {};
+    for (var character in untypedCharacters) {
+        if (untypedCharacters.hasOwnProperty(character)) {
+            typedCharacters[character] = new SavedRollArea(character, untypedCharacters[character]);
+        }
+    }
+    return typedCharacters;
+}
 
-function loadCharacter (characterName) {
+CharacterStore.loadCharacter = function (characterName) {
+    $("#dicebag").html("");
     var characterList = localStorage.getObject("Characters");
     if (characterList === null) {
         localStorage.setObject("Characters", {});
@@ -286,22 +317,35 @@ function loadCharacter (characterName) {
         var character = new SavedRollArea(characterName);
         characterList[characterName] = character;
         localStorage.setObject("Characters", characterList);
+        this.currentCharacter = character;
         return character;
     } else {
         var loadedChar = new SavedRollArea(characterName, characterList[characterName]);
-        DisplayCharacterStuff(loadedChar);
+        this.displayCharacterStuff(loadedChar);
+        this.currentCharacter = loadedChar;
         return loadedChar;
     }
 };
-
-function DisplayCharacterStuff(character) {
+CharacterStore.displayCharacterStuff = function(character) {
     for (var rollSetting in character.storedRoll) {
         if (character.storedRoll.hasOwnProperty(rollSetting)) {
             insertIntoDiceBag(character.storedRoll[rollSetting]);
         }
     }
-
 }
+
+CharacterStore.clearDiceBag = function () {
+    $("#dicebag").html("");
+    var name = CharacterStore.currentCharacter.characterName;
+    var reset = new SavedRollArea(name);
+    CharacterStore.updateCharacter(reset);
+}
+
+CharacterStore.changeCharacters = function(characterName) {
+    this.loadCharacter(characterName);
+}
+
+CharacterStore.currentCharacter = CharacterStore.loadCharacter("Default");
 
 function loadLocals() {
     var diceBag = localStorage.getObject("DiceBag");
@@ -400,32 +444,27 @@ $(document).ready(function () {
         loadLocals();
     } 
     else {
-        loadCharacter(characterName);
+        CharacterStore.currentCharacter = CharacterStore.loadCharacter(characterName);
     }
     
 });
 
 
 
-var settings = new RollSettings(5);
-var Bill = new SavedRollArea("Bill");
-var rollId = Bill.addToDiceBag(settings);
 
-var diceBag = localStorage.getObject("DiceBag");
-var Default = new SavedRollArea("Default");
-if (diceBag !== null) {
-    for (var i = 0; i < diceBag.length; i++) {
-        var currentDieRoll = diceBag[i];
-        var settings = new RollSettings(currentDieRoll.diePool, currentDieRoll.agains, currentDieRoll.isRote, currentDieRoll.rollDescription);
-        Default.addToDiceBag(settings);
-    }
-}
 
-var ch = localStorage.getObject("Characters");
-ch["Default"] = Default;
-localStorage.setObject("Characters", ch);
+//var diceBag = localStorage.getObject("DiceBag");
+//var Default = new SavedRollArea("Default");
+//if (diceBag !== null) {
+//    for (var i = 0; i < diceBag.length; i++) {
+//        var currentDieRoll = diceBag[i];
+//        var settings = new RollSettings(currentDieRoll.diePool, currentDieRoll.agains, currentDieRoll.isRote, currentDieRoll.rollDescription);
+//        Default.addToDiceBag(settings);
+//    }
+//}
 
-if (typeof characterName === "undefined") {
-    alert("Ahhhhh, on default page!");
+//var ch = localStorage.getObject("Characters");
+//ch["Default"] = Default;
+//localStorage.setObject("Characters", ch);
 
-}
+

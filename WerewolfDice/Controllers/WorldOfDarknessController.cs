@@ -16,7 +16,7 @@ namespace WerewolfDice.Controllers
 
         public ActionResult Character(string id)
         {
-            return View(model:id);
+            return View("~/Views/WorldOfDarkness/index.cshtml",model:id);
         }
     }
 }
