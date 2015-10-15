@@ -1,9 +1,9 @@
 ﻿.body-content {
-    padding-top: 1%;
+    padding-top: 5%;
 }
 
 .roll-maker {
-    border: 2px black solid;
+    /*border: 2px black solid;*/
     display: inline-block;
     float: left;
     padding: 3em;
@@ -13,7 +13,7 @@
 .roll-maker * { box-sizing: border-box; }
 
 .utilities {
-    border: 2px black solid;
+   /*border: 2px black solid;*/
     padding: 3em;
 }
 
@@ -98,9 +98,17 @@
     overflow-y: auto;
 }
 
+.panel {
+    box-shadow: 1px 1px 1px 1px #333333;
+
+}
+
 .panel > .heading{
-    background-color: #333333;
+    background-color: inherit;
+    color: black;
+    box-shadow: none;
 }
 .panel > .content {
     background-color: inherit;
+
 }

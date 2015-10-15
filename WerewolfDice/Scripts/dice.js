@@ -9,6 +9,8 @@ Storage.prototype.getObject = function (key) {
 }
 
 
+// Begin UI modification code
+
 function RollDie() {
     return Math.floor((Math.random() * 10 + 1));
 }
@@ -68,7 +70,7 @@ function insertIntoDiceBag(premadeRoll) {
     jQuery("<span/>", { text: premadeRoll.rollDescription, "class": "diepool-label" }).appendTo(newButton);
     newButton.appendTo("#dicebag");
     if (premadeRoll.hasOwnProperty("results")) {
-        alert("Loading a roll with results!");
+        //alert("Loading a roll with results!");
     }
 }
 
@@ -252,8 +254,8 @@ RollSettings.prototype.roll = function() {
     this.results.push(result);
     return result;
 }
-
-var SavedRollArea = function(characterName, obj) {
+var SavedRollArea = SavedRollArea || {};
+SavedRollArea = function(characterName, obj) {
     this.rollKey = 0;
     this.storedRoll = {};
     this.characterName = characterName;
@@ -269,12 +271,14 @@ SavedRollArea.prototype.addToDiceBag = function (dieSettings) {
 
 SavedRollArea.prototype.roll  = function(currentRollKey) {
     if (!this.storedRoll.hasOwnProperty(currentRollKey)) {
-        alert("Invalid rollkey found");
+        //alert("Invalid rollkey found");
         return -1;
     }
     var currentRoll = this.storedRoll[currentRollKey];
     return currentRoll.roll();;
 }
+
+//Begin CharacterStore Definition
 
 var CharacterStore = CharacterStore || {};
 
@@ -291,10 +295,10 @@ CharacterStore.updateCharacter = function (character) {
             alert("Name is not defined");
         }
         console.log("Overwrote " + character.characterName + " with new data");
-        
+
     }
 }
-CharacterStore.getCharacters = function() {
+CharacterStore.getCharacters = function () {
     var untypedCharacters = localStorage.getObject("Characters");
     var typedCharacters = {};
     for (var character in untypedCharacters) {
@@ -312,7 +316,7 @@ CharacterStore.loadCharacter = function (characterName) {
         localStorage.setObject("Characters", {});
         characterList = localStorage.getObject("Characters");
     }
-    
+    $("#charactername").text(characterName);
     if (!(characterList.hasOwnProperty(characterName))) {
         var character = new SavedRollArea(characterName);
         characterList[characterName] = character;
@@ -326,7 +330,7 @@ CharacterStore.loadCharacter = function (characterName) {
         return loadedChar;
     }
 };
-CharacterStore.displayCharacterStuff = function(character) {
+CharacterStore.displayCharacterStuff = function (character) {
     for (var rollSetting in character.storedRoll) {
         if (character.storedRoll.hasOwnProperty(rollSetting)) {
             insertIntoDiceBag(character.storedRoll[rollSetting]);
@@ -341,14 +345,28 @@ CharacterStore.clearDiceBag = function () {
     CharacterStore.updateCharacter(reset);
 }
 
-CharacterStore.changeCharacters = function(characterName) {
+CharacterStore.changeCharacters = function (characterName) {
     this.loadCharacter(characterName);
+    
 }
 
-CharacterStore.currentCharacter = CharacterStore.loadCharacter("Default");
+CharacterStore.currentCharacter = CharacterStore.loadCharacter("General");
+
+//End CharacterStore definition
+
 
 function loadLocals() {
     var diceBag = localStorage.getObject("DiceBag");
+    var Default = new SavedRollArea("General");
+    if (diceBag !== null) {
+        for (var i = 0; i < diceBag.length; i++) {
+            var currentDieRoll = diceBag[i];
+            var settings = new RollSettings(currentDieRoll.diePool, currentDieRoll.agains, currentDieRoll.isRote, currentDieRoll.rollDescription);
+            Default.addToDiceBag(settings);
+        }
+    }
+    CharacterStore.currentCharacter = Default;
+    CharacterStore.updateCharacter(Default);
     if (diceBag !== null) {
         for (var i = diceBag.length - 1; i >= 0; i--) {
             insertIntoDiceBag(diceBag[i]);
@@ -367,6 +385,7 @@ function loadLocals() {
     } else {
         localStorage.setObject("DiceResults", []);
     }
+    
 }
 
 function RollDice(diePool) {
@@ -410,6 +429,46 @@ function WerewolfRoll(isRote, diePool, agains) {
     return { DiceBag: roll, RoteDice: diceFromRote };
 }
 
+function listCharacters() {
+    var currentCname = CharacterStore.currentCharacter.characterName;
+    var characters = CharacterStore.getCharacters();
+    $("<select>").appendTo("#characterSelection");
+    for (var character in characters) {
+        if (characters.hasOwnProperty(character)) {
+            if (character === "undefined" ) {
+                continue;
+            }
+            $("<option>", {
+                "text": character,
+                "value": character
+            })
+                .appendTo("#characterSelection>select");
+        }
+    }
+    $("#characterSelection>select").on('change', function() {
+        var newChar = $("#characterSelection>select>option:selected").val();
+        CharacterStore.loadCharacter(newChar);
+    });
+    var currentCname = CharacterStore.currentCharacter.characterName;
+    $("#characterSelection>select").val(currentCname);
+}
+
+$("#addCharacter button").on("click", function () {
+    var newChar = $("#addCharacter input").val();
+    if (newChar === ""  ) {
+        return;
+    }
+    var chars = CharacterStore.getCharacters();
+    if (chars.hasOwnProperty(newChar)) {
+        return;
+    }
+    CharacterStore.changeCharacters(newChar);
+    $("<option>", {
+        "text": newChar,
+        "value": newChar
+    }).appendTo("#characterSelection>select");
+
+});
 
 $(document).ready(function () {
 
@@ -446,7 +505,7 @@ $(document).ready(function () {
     else {
         CharacterStore.currentCharacter = CharacterStore.loadCharacter(characterName);
     }
-    
+    listCharacters();
 });
 
 
@@ -454,7 +513,7 @@ $(document).ready(function () {
 
 
 //var diceBag = localStorage.getObject("DiceBag");
-//var Default = new SavedRollArea("Default");
+//var Default = new SavedRollArea("General");
 //if (diceBag !== null) {
 //    for (var i = 0; i < diceBag.length; i++) {
 //        var currentDieRoll = diceBag[i];
@@ -462,9 +521,10 @@ $(document).ready(function () {
 //        Default.addToDiceBag(settings);
 //    }
 //}
+//CharacterStore.updateCharacter("General");
 
 //var ch = localStorage.getObject("Characters");
-//ch["Default"] = Default;
+//ch["General"] = Default;
 //localStorage.setObject("Characters", ch);
 
 

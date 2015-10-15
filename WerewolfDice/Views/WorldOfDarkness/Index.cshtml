@@ -1,17 +1,18 @@
 ﻿@model string
 @{
     ViewBag.Title = "Dice Roller";
+    var characterName = Model;
 }
-
-@if (!String.IsNullOrEmpty(Model))
+@if (String.IsNullOrEmpty(Model))
 {
-    <h2>Character - @Model</h2>
-    <script>characterName = "@Model";</script>
-}
-
-<div id="characterSelection" data-role="group" data-group-type="one-state" data-button-style="class">
+    characterName = "General";
     
-</div>
+}
+<h2>Character - <span id="charactername">@characterName</span></h2>
+    <script>characterName = "@characterName";</script>
+
+
+  
 <div class="grid">
     <div class="row cells2">
         <div class="cell panel collapsible" data-role="panel">
@@ -86,6 +87,11 @@
                 <span class="title">Adjust roll context</span>
             </div>
             <div class="content">
+                <div id="characterSelection" class="input-control select full-size"></div>
+                <div class="input-control text iconic" data-role="input" id="addCharacter">
+                    <input type="text" placeholder="Add page"/>
+                    <button class="button"><span class="mif-plus"></span></button>
+                </div>
                 <div class="grid utilities cell">
                     <div class="row cells2">
                         <button class="cell button bg-dark fg-grayLight" onclick="showDialog('#DieBagConfirm')">Clear DiceBag</button>
